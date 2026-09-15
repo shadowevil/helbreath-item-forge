@@ -31,9 +31,7 @@ public sealed record CardUpdate(
     string? Id,
     string? Name,
     string? Notes,
-    string? ItemModel,
-    int[]? ItemIds,
-    string? WeaponClass,
+    string? ItemType,
     string? ModelPath);
 
 public sealed record OpResult(bool Ok, string? Error, object? Data)

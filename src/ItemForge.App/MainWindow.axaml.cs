@@ -115,13 +115,13 @@ public partial class MainWindow : Window
                 if (filter.Length > 0 &&
                     !s.Name.Contains(filter, StringComparison.OrdinalIgnoreCase) &&
                     !s.Id.Contains(filter, StringComparison.OrdinalIgnoreCase) &&
-                    !s.ItemModel.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    !s.ItemType.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
                 string subtitle = s.Error is not null
                     ? "unreadable card file"
-                    : (string.IsNullOrEmpty(s.ItemModel) ? s.Id : s.ItemModel) + "  -  " + CardGalleryView.StatusLabel(s.ModelStatus).Text;
+                    : (string.IsNullOrEmpty(s.ItemType) ? s.Id : s.ItemType) + "  -  " + CardGalleryView.StatusLabel(s.ModelStatus).Text;
                 _cardItems.Add(new CardListItem { Id = s.Id, Name = s.Name, Subtitle = subtitle });
             }
             CardList.SelectedItem = _cardItems.FirstOrDefault(i => i.Id == _openCard?.Id);
@@ -641,18 +641,6 @@ public partial class MainWindow : Window
         WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
     private void OnClose(object? sender, RoutedEventArgs e) => Close();
-
-    // Activity-bar button cycles System -> Dark -> Light -> System.
-    private void OnThemeToggle(object? sender, RoutedEventArgs e)
-    {
-        string next = _settings.Theme switch
-        {
-            "System" => "Dark",
-            "Dark" => "Light",
-            _ => "System",
-        };
-        ApplyTheme(next, persist: true);
-    }
 
     private void OnThemeSystem(object? sender, RoutedEventArgs e) => ApplyTheme("System", true);
     private void OnThemeLight(object? sender, RoutedEventArgs e) => ApplyTheme("Light", true);

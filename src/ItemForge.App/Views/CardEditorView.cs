@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -9,10 +8,9 @@ using ItemForge.Core.Cards;
 
 namespace ItemForge.App.Views;
 
-// Edits one card's working copy. Phase 1 has the Details tab (identity, item binding, model file, notes);
-// the presentation tabs are shown locked with the phase that brings them, so the shape of the editor is
-// visible from the start. Every edit writes straight into the working copy and raises Edited; saving is
-// the window's job.
+// Edits one card's working copy. Phase 1 has the Details tab (name, item type, model file, notes); the
+// presentation tabs are shown locked with the phase that brings them. Every edit writes straight into the
+// working copy and raises Edited; saving is the window's job.
 public sealed class CardEditorView : UserControl
 {
     private static readonly (string Name, string Phase)[] PresentationTabs =
@@ -23,16 +21,13 @@ public sealed class CardEditorView : UserControl
     private readonly Card _card;
     private readonly Workspace _workspace;
     private readonly TextBox _name = new() { FontSize = 13 };
-    private readonly TextBox _itemModel = new() { FontSize = 13, Watermark = "e.g. longsword" };
-    private readonly TextBox _itemIds = new() { FontSize = 13, Watermark = "e.g. 17, 18, 19, 22" };
-    private readonly ComboBox _weaponClass = new() { FontSize = 13, MinWidth = 220 };
+    private readonly ComboBox _itemType = new() { FontSize = 13, MinWidth = 220 };
     private readonly TextBox _modelPath = new() { FontSize = 13, IsReadOnly = true, Watermark = "no model bound" };
     private readonly TextBox _notes = new() { FontSize = 13, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 120 };
-    private readonly TextBlock _idsError = Ui.Text("", "hint");
     private readonly StackPanel _modelStatus = new() { Orientation = Orientation.Horizontal, Spacing = 6 };
     private readonly TextBlock _modelDetail = Ui.Text("", "hint");
     private readonly TextBlock _fileInfo = Ui.Text("", "hint");
-    private readonly List<string> _classItems = new(WeaponClasses.All);
+    private readonly List<string> _typeItems = new(ItemTypes.All);
     private bool _loading;
 
     public event Action? Edited;
@@ -41,14 +36,11 @@ public sealed class CardEditorView : UserControl
     {
         _card = card;
         _workspace = workspace;
-        _idsError.Res(TextBlock.ForegroundProperty, "HbaErrorBrush");
 
         _name.TextChanged += (_, _) => Apply(() => _card.Name = _name.Text ?? "");
-        _itemModel.TextChanged += (_, _) => Apply(() => _card.Item.Model = (_itemModel.Text ?? "").Trim());
-        _itemIds.TextChanged += (_, _) => Apply(ApplyIds);
         _notes.TextChanged += (_, _) => Apply(() => _card.Notes = _notes.Text ?? "");
-        _weaponClass.ItemsSource = _classItems;
-        _weaponClass.SelectionChanged += (_, _) => Apply(() => _card.Item.WeaponClass = _weaponClass.SelectedItem as string ?? "");
+        _itemType.ItemsSource = _typeItems;
+        _itemType.SelectionChanged += (_, _) => Apply(() => _card.ItemType = _itemType.SelectedItem as string ?? "");
 
         var browse = Ui.DialogButton("Browse...", async (_, _) => await BrowseModelAsync());
         var rehash = Ui.DialogButton("Rehash", (_, _) => Rebind());
@@ -64,11 +56,7 @@ public sealed class CardEditorView : UserControl
         var form = new StackPanel { Spacing = 10, MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(24, 18, 24, 24) };
         form.Children.Add(Ui.Text("CARD", "section"));
         form.Children.Add(Field("Name", _name));
-        form.Children.Add(Ui.Text("ITEM", "section").WithTopMargin(10));
-        form.Children.Add(Field("Item model", _itemModel, "The items.hba model group this art is for: sprites/items/<model>."));
-        form.Children.Add(Field("Item ids", _itemIds, "Items that display this model (informational; several items can share one model)."));
-        form.Children.Add(_idsError);
-        form.Children.Add(Field("Weapon class", _weaponClass, "Picks the pose baseline the Worn presentation starts from."));
+        form.Children.Add(Field("Item type", _itemType, "Picks the pose baseline the Worn presentation starts from."));
         form.Children.Add(Ui.Text("MODEL", "section").WithTopMargin(10));
         form.Children.Add(Field("Model file", modelRow));
         form.Children.Add(new StackPanel { Spacing = 3, Margin = new Thickness(140, 0, 0, 0), Children = { _modelStatus, _modelDetail } });
@@ -95,19 +83,15 @@ public sealed class CardEditorView : UserControl
         try
         {
             _name.Text = _card.Name;
-            _itemModel.Text = _card.Item.Model;
-            _itemIds.Text = string.Join(", ", _card.Item.Ids);
             _notes.Text = _card.Notes;
-            if (!string.IsNullOrEmpty(_card.Item.WeaponClass) && !_classItems.Contains(_card.Item.WeaponClass))
+            if (!string.IsNullOrEmpty(_card.ItemType) && !_typeItems.Contains(_card.ItemType))
             {
-                _classItems.Add(_card.Item.WeaponClass);
-                _weaponClass.ItemsSource = null;
-                _weaponClass.ItemsSource = _classItems;
+                _typeItems.Add(_card.ItemType);
+                _itemType.ItemsSource = null;
+                _itemType.ItemsSource = _typeItems;
             }
-            _weaponClass.SelectedItem = string.IsNullOrEmpty(_card.Item.WeaponClass) ? null : _card.Item.WeaponClass;
+            _itemType.SelectedItem = string.IsNullOrEmpty(_card.ItemType) ? null : _card.ItemType;
             _modelPath.Text = _card.Model.Path;
-            _idsError.Text = "";
-            _idsError.IsVisible = false;
         }
         finally
         {
@@ -137,23 +121,6 @@ public sealed class CardEditorView : UserControl
         }
         UpdateModelInfo();
         Edited?.Invoke();
-    }
-
-    private void ApplyIds()
-    {
-        var ids = new List<int>();
-        foreach (string part in (_itemIds.Text ?? "").Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (!int.TryParse(part, out int id) || id < 0)
-            {
-                _idsError.Text = $"'{part}' is not an item id - the card keeps its previous ids until this is fixed.";
-                _idsError.IsVisible = true;
-                return;
-            }
-            ids.Add(id);
-        }
-        _idsError.IsVisible = false;
-        _card.Item.Ids = ids;
     }
 
     private async Task BrowseModelAsync()

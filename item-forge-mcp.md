@@ -72,7 +72,7 @@ Observe for that run; Full must be chosen in the menu (it persists).
 | `open_card` | Observe | `id` | Open a card in the editor. Refused while another card is dirty. |
 | `close_card` | Observe (Full to discard) | `discard?` | Close the open card; refused when dirty unless `discard:true`. |
 | `create_card` | Full | `name`, `open?` | New `cards/<id>.json`; id derived from the name. |
-| `update_card` | Full | `id?`, `name?`, `notes?`, `itemModel?`, `itemIds?`, `weaponClass?`, `modelPath?` | Edit the working copy (becomes dirty). Validates all fields before applying any. `modelPath` binds + hashes; `""` clears. |
+| `update_card` | Full | `id?`, `name?`, `notes?`, `itemType?`, `modelPath?` | Edit the working copy (becomes dirty). Validates all fields before applying any. `modelPath` binds + hashes; `""` clears. |
 | `save_card` | Full | - | Atomic write of the open card. |
 | `duplicate_card` | Full | `id`, `name` | Copy a card under a new name. |
 | `delete_card` | Full | `id` | Move to `cards/.trash/`. |

@@ -110,9 +110,7 @@ public sealed class CardGalleryView : UserControl
         name.FontWeight = FontWeight.SemiBold;
         name.TextTrimming = TextTrimming.CharacterEllipsis;
 
-        string item = string.IsNullOrEmpty(card.ItemModel) ? "no item model" : card.ItemModel;
-        string cls = string.IsNullOrEmpty(card.WeaponClass) ? "" : "  -  " + card.WeaponClass;
-        var sub = Ui.Text(item + cls, "hint");
+        var sub = Ui.Text(string.IsNullOrEmpty(card.ItemType) ? "no item type" : card.ItemType, "hint");
         sub.TextWrapping = TextWrapping.NoWrap;
         sub.TextTrimming = TextTrimming.CharacterEllipsis;
 

@@ -67,26 +67,11 @@
       </StackPanel>
     </Grid>
 
-    <!-- Body: activity bar | side bar | splitter | editor -->
-    <Grid Grid.Row="1" ColumnDefinitions="48,258,4,*">
-
-      <!-- Activity bar -->
-      <Grid Grid.Column="0" Background="{DynamicResource HbaActivityBrush}" RowDefinitions="*,Auto">
-        <StackPanel Grid.Row="0">
-          <Button Classes="activity active" Name="CardsActivity" Click="OnShowGallery" ToolTip.Tip="Cards">
-            <Path Stroke="{DynamicResource HbaMetalBrush}" StrokeThickness="1.4"
-                  Data="M2,2 H7 V7 H2 Z M9,2 H14 V7 H9 Z M2,9 H7 V14 H2 Z M9,9 H14 V14 H9 Z" />
-          </Button>
-        </StackPanel>
-        <StackPanel Grid.Row="1">
-          <Button Classes="activity" Name="ThemeButton" Click="OnThemeToggle" ToolTip.Tip="Toggle light / dark">
-            <Path Fill="{DynamicResource HbaMetalBrush}" Data="M9,2 A6,6 0 1 0 9,14 A4.5,4.5 0 1 1 9,2 Z" />
-          </Button>
-        </StackPanel>
-      </Grid>
+    <!-- Body: side bar | splitter | editor. No activity bar: the forge has one view (user decision 2026-09-15). -->
+    <Grid Grid.Row="1" ColumnDefinitions="258,4,*">
 
       <!-- Side bar (card list) -->
-      <Border Grid.Column="1" Background="{DynamicResource HbaSideBarBrush}"
+      <Border Grid.Column="0" Background="{DynamicResource HbaSideBarBrush}"
               BorderBrush="{DynamicResource HbaBorderBrush}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="34,Auto,*">
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
@@ -110,10 +95,10 @@
         </Grid>
       </Border>
 
-      <GridSplitter Grid.Column="2" />
+      <GridSplitter Grid.Column="1" />
 
       <!-- Editor -->
-      <Grid Grid.Column="3" Background="{DynamicResource HbaEditorBrush}" RowDefinitions="Auto,Auto,*">
+      <Grid Grid.Column="2" Background="{DynamicResource HbaEditorBrush}" RowDefinitions="Auto,Auto,*">
         <Border Grid.Row="0" Name="TabStrip" Background="{DynamicResource HbaTitleBarBrush}"
                 BorderBrush="{DynamicResource HbaBorderBrush}" BorderThickness="0,0,0,1"
                 Height="35" IsVisible="False">

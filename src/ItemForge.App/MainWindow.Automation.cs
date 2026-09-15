@@ -128,13 +128,9 @@ public partial class MainWindow : IAutomationHost
         {
             return OpResult.Fail("name cannot be empty");
         }
-        if (update.WeaponClass is not null && update.WeaponClass.Length > 0 && !WeaponClasses.All.Contains(update.WeaponClass))
+        if (update.ItemType is not null && update.ItemType.Length > 0 && !ItemTypes.All.Contains(update.ItemType))
         {
-            return OpResult.Fail($"unknown weaponClass '{update.WeaponClass}' (one of: {string.Join(", ", WeaponClasses.All)})");
-        }
-        if (update.ItemIds is not null && update.ItemIds.Any(i => i < 0))
-        {
-            return OpResult.Fail("itemIds must be non-negative");
+            return OpResult.Fail($"unknown itemType '{update.ItemType}' (one of: {string.Join(", ", ItemTypes.All)})");
         }
         var scratch = _openCard.Clone();
         if (update.ModelPath is not null && update.ModelPath.Length > 0)
@@ -148,9 +144,7 @@ public partial class MainWindow : IAutomationHost
 
         if (update.Name is not null) _openCard.Name = update.Name.Trim();
         if (update.Notes is not null) _openCard.Notes = update.Notes;
-        if (update.ItemModel is not null) _openCard.Item.Model = update.ItemModel.Trim();
-        if (update.ItemIds is not null) _openCard.Item.Ids = update.ItemIds.ToList();
-        if (update.WeaponClass is not null) _openCard.Item.WeaponClass = update.WeaponClass;
+        if (update.ItemType is not null) _openCard.ItemType = update.ItemType;
         if (update.ModelPath is not null)
         {
             if (update.ModelPath.Length == 0)

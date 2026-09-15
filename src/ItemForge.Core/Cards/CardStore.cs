@@ -7,9 +7,7 @@ namespace ItemForge.Core.Cards;
 public sealed record CardSummary(
     string Id,
     string Name,
-    string ItemModel,
-    IReadOnlyList<int> ItemIds,
-    string WeaponClass,
+    string ItemType,
     string ModelPath,
     ModelStatus ModelStatus,
     DateTimeOffset Modified,
@@ -76,8 +74,7 @@ public sealed class CardStore
             }
             catch (Exception ex)
             {
-                list.Add(new CardSummary(id, id, "", Array.Empty<int>(), "", "", ModelStatus.None,
-                    File.GetLastWriteTimeUtc(file), file, ex.Message));
+                list.Add(new CardSummary(id, id, "", "", ModelStatus.None, File.GetLastWriteTimeUtc(file), file, ex.Message));
             }
         }
         return list
@@ -89,9 +86,7 @@ public sealed class CardStore
     public CardSummary Summarize(Card card) => new(
         card.Id,
         card.DisplayName,
-        card.Item.Model,
-        card.Item.Ids.ToArray(),
-        card.Item.WeaponClass,
+        card.ItemType,
         card.Model.Path,
         ModelBinding.Status(card.Model, Workspace),
         card.Modified,

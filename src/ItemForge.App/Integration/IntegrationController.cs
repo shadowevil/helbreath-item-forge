@@ -110,7 +110,7 @@ public sealed class IntegrationController : IDisposable
             async _ => ToolResult.Json(await _host.GetStateAsync()));
 
         Register("list_cards",
-            "Re-read cards/ from disk and list every card: id, name, itemModel, itemIds, weaponClass, modelPath, modelStatus (None / Ok / Missing / Changed), modified, file path, and an error when the file is unreadable.",
+            "Re-read cards/ from disk and list every card: id, name, itemType, modelPath, modelStatus (None / Ok / Missing / Changed), modified, file path, and an error when the file is unreadable.",
             EmptySchema, IntegrationMode.Observe,
             async _ => ToolResult.Json(await _host.ListCardsAsync()));
 
@@ -178,15 +178,13 @@ public sealed class IntegrationController : IDisposable
                     id = new { type = "string", description = "Card to edit; defaults to the open card." },
                     name = new { type = "string", description = "Display name." },
                     notes = new { type = "string", description = "Free-form notes." },
-                    itemModel = new { type = "string", description = "items.hba model group, e.g. 'longsword'." },
-                    itemIds = new { type = "array", items = new { type = "integer" }, description = "Item ids that display this model." },
-                    weaponClass = new { type = "string", description = "one_handed_sword, two_handed_sword, axe, hammer, staff, wand, bow, shield, tool, other - or '' to clear." },
+                    itemType = new { type = "string", description = "one_handed_sword, two_handed_sword, axe, hammer, staff, wand, bow, shield, tool, other - or '' to clear." },
                     modelPath = new { type = "string", description = "Model file to bind; '' clears it." },
                 },
             },
             IntegrationMode.Full,
             async a => AsResult(await _host.UpdateCardAsync(new CardUpdate(
-                Str(a, "id"), Str(a, "name"), Str(a, "notes"), Str(a, "itemModel"), Ints(a, "itemIds"), Str(a, "weaponClass"), Str(a, "modelPath")))));
+                Str(a, "id"), Str(a, "name"), Str(a, "notes"), Str(a, "itemType"), Str(a, "modelPath")))));
 
         Register("save_card",
             "Write the open card to cards/<id>.json (atomic replace). Returns the file path and the new modified time.",

@@ -88,22 +88,6 @@
       <Setter Property="Background" Value="#E81123" />
     </Style>
 
-    <!-- Activity bar icon button -->
-    <Style Selector="Button.activity">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="2,0,0,0" />
-      <Setter Property="BorderBrush" Value="Transparent" />
-      <Setter Property="CornerRadius" Value="0" />
-      <Setter Property="Width" Value="48" />
-      <Setter Property="Height" Value="46" />
-      <Setter Property="Padding" Value="0" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.activity.active">
-      <Setter Property="BorderBrush" Value="{DynamicResource HbaAccentBrush}" />
-    </Style>
-
     <!-- Thin, hover-highlight splitter -->
     <Style Selector="GridSplitter">
       <Setter Property="Background" Value="Transparent" />

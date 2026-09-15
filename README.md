@@ -5,12 +5,12 @@ sprites: worn on the player in every action / direction / frame for both sexes, 
 inventory, and on the ground. Every placement is visible and hand-adjustable in a live 3D view, and every
 bake is repeatable byte-for-byte.
 
-The full design lives in the Helbreath repo: `design/plans/partial/item-forge.md`.
+The full design is [item-forge-plan.md](item-forge-plan.md).
 
 ## Status
 
-Phase 1 of 8: workspace, Workbench-styled shell, card gallery, card Details editor (item binding + model
-file with SHA-256), and the MCP control surface. No rendering yet.
+Phase 1 of 8: workspace, Workbench-styled shell, card gallery, card Details editor (name, item type, model
+file with SHA-256, notes), and the MCP control surface. No rendering yet.
 
 ## Build
 
@@ -40,4 +40,5 @@ walking up from the exe folder, or File > Open Workspace... picks one.
     ItemForge.sln
     src/ItemForge.Core/     cards, workspace, model binding - no UI
     src/ItemForge.App/      the Avalonia GUI + MCP server
+    item-forge-plan.md      the design: requirements, formats, phases, findings
     item-forge-mcp.md       agent guide for driving the app over MCP

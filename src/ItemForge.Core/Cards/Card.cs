@@ -17,8 +17,11 @@ public sealed class Card
 
     public int Schema { get; set; } = CurrentSchema;
     public string Name { get; set; } = "";
+
+    // What kind of item this is (ItemTypes.All). Picks the pose baseline the Worn presentation seeds from.
+    public string ItemType { get; set; } = "";
+
     public string Notes { get; set; } = "";
-    public CardItem Item { get; set; } = new();
     public CardModel Model { get; set; } = new();
     public JsonObject Worn { get; set; } = new();
     public JsonObject Equip { get; set; } = new();
@@ -33,7 +36,8 @@ public sealed class Card
     [JsonIgnore]
     public string Id { get; set; } = "";
 
-    public string DisplayName => string.IsNullOrWhiteSpace(Name) ? Id : Name;
+    [JsonIgnore]
+    public string DisplayName =>string.IsNullOrWhiteSpace(Name) ? Id : Name;
 
     public Card Clone()
     {
@@ -41,21 +45,6 @@ public sealed class Card
         copy.Id = Id;
         return copy;
     }
-}
-
-public sealed class CardItem
-{
-    // The items.hba model group the art is for (sprites/items/<model>), e.g. "longsword".
-    public string Model { get; set; } = "";
-
-    // Item ids that display this model - informational, several items can share one model.
-    public List<int> Ids { get; set; } = new();
-
-    // Picks the pose baseline the Worn presentation seeds from (WeaponClasses.All).
-    public string WeaponClass { get; set; } = "";
-
-    [JsonExtensionData]
-    public Dictionary<string, JsonElement>? Extra { get; set; }
 }
 
 public sealed class CardModel
@@ -70,7 +59,7 @@ public sealed class CardModel
     public Dictionary<string, JsonElement>? Extra { get; set; }
 }
 
-public static class WeaponClasses
+public static class ItemTypes
 {
     public static readonly IReadOnlyList<string> All = new[]
     {

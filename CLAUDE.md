@@ -1,8 +1,9 @@
 # Helbreath Item Forge - project instructions
 
-A C# Avalonia GUI that bakes 3D item models into Helbreath sprites. The design is
-`design/plans/partial/item-forge.md` in the Helbreath repo (`../Helbreath`) - read it before changing
-behaviour. Work is tracked in chat and that plan; there is no kanban board for this repo.
+A C# Avalonia GUI that bakes 3D item models into Helbreath sprites. The design is `item-forge-plan.md` in
+this repo - read it before changing behaviour. Work is tracked in chat and that plan; there is no kanban
+board for this repo. Nothing about the forge is written into the Helbreath repo (`../Helbreath`): it is read
+for reference only (user direction 2026-09-15, after forge files sat unstaged in that tree).
 
 ## User rules (binding, set 2026-09-15)
 
@@ -18,6 +19,12 @@ behaviour. Work is tracked in chat and that plan; there is no kanban board for t
   into `items.hba` is a separate step outside this tool.
 - **Follow the HBA Workbench's design standards exactly** (`../hba-workshop`): its colour tokens, Inter,
   button / tree / dialog styles, frameless shell and cursors. `App.axaml` here carries its tokens unchanged.
+  One deliberate exception: **no activity bar** - the forge has a single view (user decision 2026-09-15).
+- **Stay lean** (user rule, 2026-09-15): this is a 3D processor that bakes models into 2D sprites following
+  the Helbreath models, with slight adjustments. A card keeps what describes how the item is represented -
+  name, item type, model file, notes. Anything that feeds nothing (informational fields, extra navigation,
+  convenience features) is bloat: don't add it.
+- **Keep a full MCP server, like the Workbench's** (user decision 2026-09-15).
 
 ## Engineering rules
 
