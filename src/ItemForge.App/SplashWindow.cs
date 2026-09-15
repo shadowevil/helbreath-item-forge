@@ -17,8 +17,12 @@ namespace ItemForge.App;
 // never a black rectangle.
 public sealed class SplashWindow : Window
 {
-    // Long enough to read, short enough not to be in the way. The app itself loads faster than this.
-    private static readonly TimeSpan MinimumDisplay = TimeSpan.FromMilliseconds(1200);
+    // The app window is held back until this has passed, so the splash is the whole of the start-up, not a
+    // banner over a half-drawn tool (user direction, 2026-09-15).
+    private static readonly TimeSpan MinimumDisplay = TimeSpan.FromSeconds(2);
+
+    // The main window appears while the splash fades, so the two overlap rather than blink.
+    private static readonly TimeSpan FadeOut = TimeSpan.FromMilliseconds(220);
 
     private const int LogoWidth = 512;
 
@@ -85,8 +89,8 @@ public sealed class SplashWindow : Window
 
     public void SetStatus(string text) => _status.Text = text;
 
-    // Keeps the splash up for its minimum time, then hands the screen to the main window. The main window is
-    // already up behind it, so an agent driving the app over MCP never has to wait for the splash.
+    // Keeps the splash up for its minimum time, then hands the screen over: the main window is shown as the
+    // splash fades out. Until then the app is loaded but deliberately off screen.
     public void HandOverTo(Window main)
     {
         SetStatus("Ready");
@@ -113,8 +117,26 @@ public sealed class SplashWindow : Window
 
     private void Finish(Window main)
     {
-        Close();
+        main.Show();
         main.Activate();
+
+        // Fade rather than vanish, so the hand-over reads as one motion. The splash is topmost, so the main
+        // window comes up underneath it and is uncovered as this runs.
+        var fade = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+        var started = Stopwatch.StartNew();
+        fade.Tick += (_, _) =>
+        {
+            double progress = started.Elapsed.TotalMilliseconds / FadeOut.TotalMilliseconds;
+            if (progress >= 1)
+            {
+                fade.Stop();
+                Close();
+                main.Activate();
+                return;
+            }
+            Opacity = 1 - progress;
+        };
+        fade.Start();
     }
 
     private static string AppVersion =>

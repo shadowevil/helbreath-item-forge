@@ -27,9 +27,9 @@ public partial class App : Application
         var args = desktop.Args ?? Array.Empty<string>();
         var window = new MainWindow();
         desktop.MainWindow = window;
-        // The main window comes up behind the splash, so an agent driving the app over MCP is never blocked
-        // waiting for the splash to go away.
-        window.Show();
+        // Deliberately NOT shown yet: the splash holds the screen for its minimum, then shows this window as
+        // it fades (user direction, 2026-09-15). An agent driving the app over MCP can already reach it -
+        // get_state reports the window as not visible until the hand-over.
 
         // Opens card files passed on the command line; non-file args (like --mcp) are ignored there.
         window.OpenFromArgs(args);
