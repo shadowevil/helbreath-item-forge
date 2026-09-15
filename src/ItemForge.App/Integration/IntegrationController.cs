@@ -143,6 +143,35 @@ public sealed class IntegrationController : IDisposable
             IntegrationMode.Observe,
             async a => Str(a, "id") is { } id ? AsResult(await _host.OpenCardAsync(id)) : ToolResult.Err("'id' is required."));
 
+        Register("get_model_info",
+            "Everything the Model tab knows about the open card: the loaded geometry (triangles, vertices, bounds, texture size and load time), the base setup (scale, rotation, light, ambient), the live view (tab, direction, zoom) and the last render's stats. Pass 'id' to open that card first.",
+            Schema(("id", "string", "Card to inspect; defaults to the open card.", false)),
+            IntegrationMode.Observe,
+            async a => AsResult(await _host.GetModelInfoAsync(Str(a, "id"))));
+
+        Register("set_card_tab",
+            "Switch the open card to a tab: 'Details' or 'Model'. The presentation tabs are locked until their phase is built.",
+            Schema(("tab", "string", "Details | Model", true)),
+            IntegrationMode.Observe,
+            async a => Str(a, "tab") is { } tab ? AsResult(await _host.SetCardTabAsync(tab)) : ToolResult.Err("'tab' is required."));
+
+        Register("set_model_view",
+            "Point the live 3D view: 'direction' 0..7 (0 = north, clockwise, 45 degrees a step, the client's order) and 'zoom' 1..8 (whole-pixel magnification; the pixels are the bake's own, never smoothed).",
+            Schema(("direction", "integer", "Facing 0..7.", false), ("zoom", "integer", "1..8.", false)),
+            IntegrationMode.Observe,
+            async a => AsResult(await _host.SetModelViewAsync(Int(a, "direction"), Int(a, "zoom"))));
+
+        Register("render_model",
+            "Render the card's model through the game camera, off screen, with the card's own setup - the model ALONE on transparency, never the character sprite. Returns the cost (triangles, ms, supersample), the tight opaque box and the pivot derived from it, plus the PNG inline; pass 'destFile' (absolute .png, Full mode) to write it to disk instead.",
+            Schema(
+                ("id", "string", "Card to render; defaults to the open card.", false),
+                ("direction", "integer", "Facing 0..7; defaults to the live view's.", false),
+                ("size", "integer", "Frame size in pixels (16..1024, default 160).", false),
+                ("supersample", "integer", "1..8, default 4. 1 is what the live view shows.", false),
+                ("destFile", "string", "Absolute .png path to write instead of returning an inline image (Full mode).", false)),
+            IntegrationMode.Observe,
+            RenderModelAsync);
+
         Register("close_card",
             "Close the open card and return to the gallery. Refused when it has unsaved changes unless 'discard' is true (discarding needs Full mode).",
             Schema(("discard", "boolean", "Throw away unsaved changes (Full mode only).", false)),
@@ -185,6 +214,30 @@ public sealed class IntegrationController : IDisposable
             IntegrationMode.Full,
             async a => AsResult(await _host.UpdateCardAsync(new CardUpdate(
                 Str(a, "id"), Str(a, "name"), Str(a, "notes"), Str(a, "itemType"), Str(a, "modelPath")))));
+
+        Register("update_model_setup",
+            "Edit the card's base model fix-up - the scale, orientation and light every presentation inherits - exactly as the Model tab does (the card becomes dirty; save_card writes it). 'fit' sizes the model to the frame first. Only the fields you pass change, and all are validated before any is applied.",
+            new
+            {
+                type = "object",
+                properties = new
+                {
+                    id = new { type = "string", description = "Card to edit; defaults to the open card." },
+                    fit = new { type = "boolean", description = "Set the scale so the model fills about 80% of the frame." },
+                    scale = new { type = "number", description = "World units per model unit; greater than 0." },
+                    rotationX = new { type = "number", description = "Base fix-up, degrees (applied X then Y then Z)." },
+                    rotationY = new { type = "number", description = "Base fix-up, degrees." },
+                    rotationZ = new { type = "number", description = "Base fix-up, degrees." },
+                    lightYaw = new { type = "number", description = "Light yaw in degrees, fixed to the screen." },
+                    lightPitch = new { type = "number", description = "Light pitch, -90..90." },
+                    ambient = new { type = "number", description = "Ambient light, 0..1." },
+                },
+            },
+            IntegrationMode.Full,
+            async a => AsResult(await _host.UpdateModelSetupAsync(new ModelSetupUpdate(
+                Str(a, "id"), Bool(a, "fit"), Num(a, "scale"),
+                Num(a, "rotationX"), Num(a, "rotationY"), Num(a, "rotationZ"),
+                Num(a, "lightYaw"), Num(a, "lightPitch"), Num(a, "ambient")))));
 
         Register("save_card",
             "Write the open card to cards/<id>.json (atomic replace). Returns the file path and the new modified time.",
@@ -262,6 +315,39 @@ public sealed class IntegrationController : IDisposable
         return ToolResult.Json(new { ok = true, files });
     }
 
+    private async Task<ToolResult> RenderModelAsync(JsonElement a)
+    {
+        string? destFile = Str(a, "destFile");
+        if (destFile is not null && Mode < IntegrationMode.Full)
+        {
+            return ToolResult.Err("'destFile' writes to disk and needs Full mode.");
+        }
+        if (destFile is not null && (!Path.IsPathRooted(destFile) || !destFile.EndsWith(".png", StringComparison.OrdinalIgnoreCase)))
+        {
+            return ToolResult.Err("'destFile' must be an absolute path ending in .png.");
+        }
+
+        var result = await _host.RenderModelAsync(new RenderModelArgs(
+            Str(a, "id"), Int(a, "direction"), Int(a, "size"), Int(a, "supersample")));
+        if (!result.Ok || result.Data is not RenderPayload payload)
+        {
+            return ToolResult.Err(result.Error ?? "render failed");
+        }
+
+        if (destFile is null)
+        {
+            return new ToolResult(new List<object>
+            {
+                new { type = "text", text = JsonSerializer.Serialize(new { ok = true, stats = payload.Stats, width = payload.Width, height = payload.Height }) },
+                new { type = "image", data = payload.Base64Png, mimeType = "image/png" },
+            });
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+        await File.WriteAllBytesAsync(destFile, Convert.FromBase64String(payload.Base64Png));
+        return ToolResult.Json(new { ok = true, file = destFile, width = payload.Width, height = payload.Height, stats = payload.Stats });
+    }
+
     // --- helpers ---
 
     private void Register(string name, string description, object schema, IntegrationMode minMode, Func<JsonElement, Task<ToolResult>> handler) =>
@@ -292,12 +378,13 @@ public sealed class IntegrationController : IDisposable
     private static bool Bool(JsonElement a, string name) =>
         a.ValueKind == JsonValueKind.Object && a.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.True;
 
-    private static int[]? Ints(JsonElement a, string name)
-    {
-        if (a.ValueKind != JsonValueKind.Object || !a.TryGetProperty(name, out var v) || v.ValueKind != JsonValueKind.Array)
-        {
-            return null;
-        }
-        return v.EnumerateArray().Where(e => e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out _)).Select(e => e.GetInt32()).ToArray();
-    }
+    private static int? Int(JsonElement a, string name) =>
+        a.ValueKind == JsonValueKind.Object && a.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out int i)
+            ? i
+            : null;
+
+    private static float? Num(JsonElement a, string name) =>
+        a.ValueKind == JsonValueKind.Object && a.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetDouble(out double d)
+            ? (float)d
+            : null;
 }

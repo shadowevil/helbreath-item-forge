@@ -8,4 +8,9 @@
     <RootNamespace>ItemForge.Core</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.5" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
+  </ItemGroup>
+
 </Project>

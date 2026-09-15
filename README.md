@@ -9,8 +9,10 @@ The full design is [item-forge-plan.md](item-forge-plan.md).
 
 ## Status
 
-Phase 1 of 8: workspace, Workbench-styled shell, card gallery, card Details editor (name, item type, model
-file with SHA-256, notes), and the MCP control surface. No rendering yet.
+Phases 1-2 of 8: workspace, Workbench-styled shell, card gallery, card Details editor (name, item type,
+model file with SHA-256, notes), and the MCP control surface; plus the GLB loader, the orthographic game
+camera, the software rasterizer and the Model tab - the live 3D view with the base fix-up (scale,
+orientation, light) that every presentation inherits. No character backdrops or presentations yet.
 
 ## Build
 
@@ -38,7 +40,7 @@ walking up from the exe folder, or File > Open Workspace... picks one.
 ## Layout
 
     ItemForge.sln
-    src/ItemForge.Core/     cards, workspace, model binding - no UI
+    src/ItemForge.Core/     cards, workspace, model binding, GLB loading, camera + renderer - no UI
     src/ItemForge.App/      the Avalonia GUI + MCP server
     item-forge-plan.md      the design: requirements, formats, phases, findings
     item-forge-mcp.md       agent guide for driving the app over MCP

@@ -8,14 +8,17 @@ using ItemForge.Core.Cards;
 
 namespace ItemForge.App.Views;
 
-// Edits one card's working copy. Phase 1 has the Details tab (name, item type, model file, notes); the
-// presentation tabs are shown locked with the phase that brings them. Every edit writes straight into the
-// working copy and raises Edited; saving is the window's job.
+// Edits one card's working copy. Details holds what describes the item (name, type, model file, notes);
+// Model is the live 3D view and the base fix-up. The presentation tabs are shown locked with the phase that
+// brings them. Every edit writes straight into the working copy and raises Edited; saving is the window's job.
 public sealed class CardEditorView : UserControl
 {
-    private static readonly (string Name, string Phase)[] PresentationTabs =
+    public const string DetailsTab = "Details";
+    public const string ModelTab = "Model";
+
+    private static readonly (string Name, string Phase)[] LockedTabs =
     {
-        ("Worn", "phase 5"), ("Equip", "phase 4"), ("Inventory", "phase 6"), ("Ground", "phase 6"), ("Model", "phase 2"),
+        ("Worn", "phase 5"), ("Equip", "phase 4"), ("Inventory", "phase 6"), ("Ground", "phase 6"),
     };
 
     private readonly Card _card;
@@ -28,6 +31,11 @@ public sealed class CardEditorView : UserControl
     private readonly TextBlock _modelDetail = Ui.Text("", "hint");
     private readonly TextBlock _fileInfo = Ui.Text("", "hint");
     private readonly List<string> _typeItems = new(ItemTypes.All);
+    private readonly Dictionary<string, Border> _tabs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ContentControl _host = new();
+    private readonly Control _details;
+    private ModelView? _modelView;
+    private string _currentTab = DetailsTab;
     private bool _loading;
 
     public event Action? Edited;
@@ -63,18 +71,57 @@ public sealed class CardEditorView : UserControl
         form.Children.Add(Ui.Text("NOTES", "section").WithTopMargin(10));
         form.Children.Add(_notes);
         form.Children.Add(_fileInfo.WithTopMargin(6));
+        _details = new ScrollViewer { Content = form };
 
         var root = new DockPanel();
-        var tabs = BuildPresentationTabs();
+        var tabs = BuildTabStrip();
         DockPanel.SetDock(tabs, Dock.Top);
         root.Children.Add(tabs);
-        root.Children.Add(new ScrollViewer { Content = form });
+        root.Children.Add(_host);
         Content = root;
 
         LoadFromCard();
+        ShowTab(DetailsTab);
     }
 
     public string CardId => _card.Id;
+
+    public string CurrentTab => _currentTab;
+
+    public ModelView? Model => _modelView;
+
+    // Switches tabs; the Model tab is built on first use so opening a card never pays for loading a GLB.
+    public bool ShowTab(string tab)
+    {
+        if (!_tabs.ContainsKey(tab))
+        {
+            return false;
+        }
+        _currentTab = _tabs.Keys.First(k => string.Equals(k, tab, StringComparison.OrdinalIgnoreCase));
+        foreach (var (name, border) in _tabs)
+        {
+            border.Classes.Set("active", string.Equals(name, _currentTab, StringComparison.OrdinalIgnoreCase));
+        }
+        if (string.Equals(_currentTab, ModelTab, StringComparison.OrdinalIgnoreCase))
+        {
+            _host.Content = EnsureModelView();
+        }
+        else
+        {
+            _host.Content = _details;
+        }
+        return true;
+    }
+
+    public ModelView EnsureModelView()
+    {
+        if (_modelView is null)
+        {
+            _modelView = new ModelView(_card, _workspace);
+            _modelView.Edited += () => Edited?.Invoke();
+        }
+        return _modelView;
+    }
 
     // Re-reads every field from the working copy (after an MCP edit or a save).
     public void LoadFromCard()
@@ -99,6 +146,7 @@ public sealed class CardEditorView : UserControl
         }
         UpdateModelInfo();
         UpdateFileInfo();
+        _modelView?.Reload();
     }
 
     public void UpdateFileInfo()
@@ -168,6 +216,7 @@ public sealed class CardEditorView : UserControl
         }
         _modelPath.Text = _card.Model.Path;
         UpdateModelInfo();
+        _modelView?.Reload();
         Edited?.Invoke();
     }
 
@@ -205,13 +254,14 @@ public sealed class CardEditorView : UserControl
 
     private static string Short(string hash) => hash.Length > 16 ? hash[..16] + "..." : hash;
 
-    private Border BuildPresentationTabs()
+    private Border BuildTabStrip()
     {
         var strip = new StackPanel { Orientation = Orientation.Horizontal };
-        strip.Children.Add(Tab("Details", null, active: true));
-        foreach (var (name, phase) in PresentationTabs)
+        strip.Children.Add(Tab(DetailsTab, null));
+        strip.Children.Add(Tab(ModelTab, null));
+        foreach (var (name, phase) in LockedTabs)
         {
-            strip.Children.Add(Tab(name, phase, active: false));
+            strip.Children.Add(Tab(name, phase));
         }
         return new Border
         {
@@ -222,21 +272,20 @@ public sealed class CardEditorView : UserControl
         }.Res(Border.BorderBrushProperty, "HbaBorderBrush");
     }
 
-    private static Border Tab(string text, string? lockedPhase, bool active)
+    private Border Tab(string text, string? lockedPhase)
     {
         var label = Ui.Text(text, size: 12);
         label.VerticalAlignment = VerticalAlignment.Center;
         var tab = new Border { Child = label };
         tab.Classes.Add("tab");
-        if (active)
-        {
-            tab.Classes.Add("active");
-        }
         if (lockedPhase is not null)
         {
             tab.Classes.Add("locked");
             ToolTip.SetTip(tab, $"{text} arrives in {lockedPhase} of the Item Forge plan.");
+            return tab;
         }
+        _tabs[text] = tab;
+        tab.PointerPressed += (_, _) => ShowTab(text);
         return tab;
     }
 

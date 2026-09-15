@@ -1,6 +1,6 @@
 # item forge - bake 3D item models into Helbreath sprites
 
-Status: phase 1 BUILT and trimmed to the lean scope (2026-09-15); phases 2-8 not started.
+Status: phases 1-2 BUILT (2026-09-15), the tool trimmed to the lean scope; phases 3-8 not started.
 
 Moved here from the Helbreath repo (`design/plans/partial/item-forge.md`) on 2026-09-15 so forge work stays
 out of that tree. Source paths below (`player_renderer.cpp`, `in_game_screen.cpp`, `entity_action.h`,
@@ -290,7 +290,12 @@ dialog styles and cursors. No activity bar - the forge has one view (user decisi
    binding by path + SHA-256, MCP server on port 4001 with 15 tools and single-instance forwarding - verified by
    38 MCP checks plus a second-launch forward test. Trimmed the same day to the lean scope (section 1): item
    model / item ids removed, weapon class renamed item type, activity bar removed.
-2. GLB loader, rasterizer, live 3D view, Model tab (grip, materials, light), game camera.
+2. **BUILT 2026-09-15**: GLB loader (SharpGLTF; node transforms baked in, textures decoded and capped at
+   1024), the orthographic game camera (8 facings, pixels per unit), the software rasterizer (depth buffer,
+   bilinear texture, two-sided lambert, supersample + box downsample, tight opaque box -> pivot) and the
+   Model tab - the live view at whole-pixel zoom showing the bake's own pixels, with scale / orientation /
+   light on the card. Five MCP tools (get_model_info, set_card_tab, set_model_view, render_model,
+   update_model_setup), 20 in all. The grip point moves to phase 4, where the hand proxy first needs it.
 3. Copy reference art in (player + doll characters, 1999 item sprites); backdrop compositor.
 4. Occlusion (proxies, silhouette cut, paint override) + Equip editor - the static case proves placement
    and cutting before animation is added.

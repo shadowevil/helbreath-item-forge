@@ -30,6 +30,16 @@ public interface IAutomationHost
 
     Task<OpResult> DeleteCardAsync(string id);
 
+    Task<OpResult> GetModelInfoAsync(string? id);
+
+    Task<OpResult> UpdateModelSetupAsync(ModelSetupUpdate update);
+
+    Task<OpResult> SetCardTabAsync(string tab);
+
+    Task<OpResult> SetModelViewAsync(int? direction, int? zoom);
+
+    Task<OpResult> RenderModelAsync(RenderModelArgs args);
+
     Task<OpResult> SetSettingAsync(string key, string value);
 
     Task<OpResult> QuitAsync(bool discard);

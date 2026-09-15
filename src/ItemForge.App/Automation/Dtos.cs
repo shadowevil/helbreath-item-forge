@@ -34,6 +34,38 @@ public sealed record CardUpdate(
     string? ItemType,
     string? ModelPath);
 
+// Model tab edits; null = leave alone. Fit overrides Scale by sizing the model to the frame.
+public sealed record ModelSetupUpdate(
+    string? Id,
+    bool Fit,
+    float? Scale,
+    float? RotationX,
+    float? RotationY,
+    float? RotationZ,
+    float? LightYaw,
+    float? LightPitch,
+    float? Ambient);
+
+// One off-screen render of a card's model through the game camera.
+public sealed record RenderModelArgs(string? Id, int? Direction, int? Size, int? Supersample);
+
+public sealed record RenderStatsInfo(
+    int Triangles,
+    int TrianglesDrawn,
+    int Supersample,
+    double ElapsedMs,
+    int OpaquePixels,
+    int X,
+    int Y,
+    int W,
+    int H,
+    int PivotX,
+    int PivotY,
+    string Cost);
+
+// A render on its way back to the agent: the controller turns it into an inline image or a file.
+public sealed record RenderPayload(RenderStatsInfo Stats, string Base64Png, int Width, int Height);
+
 public sealed record OpResult(bool Ok, string? Error, object? Data)
 {
     public static OpResult Success(object? data = null) => new(true, null, data);

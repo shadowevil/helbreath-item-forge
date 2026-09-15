@@ -55,8 +55,37 @@ public sealed class CardModel
     // SHA-256 of the file when it was bound. A mismatch flags a changed model instead of silently baking it.
     public string Sha256 { get; set; } = "";
 
+    // How this model is posed and lit in the game camera. Shared by every presentation: the per-presentation
+    // placement sits on top of it, so a model fixed up once is fixed up everywhere.
+    public ModelSetup Setup { get; set; } = new();
+
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? Extra { get; set; }
+}
+
+public sealed class ModelSetup
+{
+    // World units per model unit. "Fit" in the Model tab sets it from the model's own size.
+    public float Scale { get; set; } = 1f;
+
+    // Degrees, applied X then Y then Z: the base orientation fix-up that puts an arbitrarily authored model
+    // upright in the game camera.
+    public Vec3 Rotation { get; set; } = new();
+
+    // The light is fixed to the screen, not the world (see ModelRenderer), so these are viewer-relative.
+    public float LightYaw { get; set; } = -35f;
+    public float LightPitch { get; set; } = 45f;
+    public float Ambient { get; set; } = 0.35f;
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extra { get; set; }
+}
+
+public sealed class Vec3
+{
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Z { get; set; }
 }
 
 public static class ItemTypes
