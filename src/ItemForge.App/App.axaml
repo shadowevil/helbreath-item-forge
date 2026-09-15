@@ -1,0 +1,244 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ItemForge.App.App">
+
+  <!-- Styles and colour tokens follow the HBA Workbench exactly (hba-workshop App.axaml). Only the
+       card list, gallery tile, tab and form-label styles below are new, and they reuse its tokens. -->
+  <Application.Styles>
+    <FluentTheme />
+
+    <!-- Actionable controls get the hand cursor -->
+    <Style Selector="Button">
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="MenuItem">
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <!-- Destructive menu items (Delete) read red as a warning -->
+    <Style Selector="MenuItem.danger">
+      <Setter Property="Foreground" Value="#F14C4C" />
+    </Style>
+    <Style Selector="MenuItem.danger /template/ ContentPresenter">
+      <Setter Property="TextElement.Foreground" Value="#F14C4C" />
+    </Style>
+    <Style Selector="MenuItem.danger:pointerover /template/ ContentPresenter">
+      <Setter Property="TextElement.Foreground" Value="#FF6B6B" />
+    </Style>
+
+    <!-- Title-bar menu: flat top-level item that blends into the header -->
+    <Style Selector="Menu > MenuItem">
+      <Setter Property="Padding" Value="9,0" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource HbaTextBrush}" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- Dialog button: centered text, faint outline, hover highlight -->
+    <Style Selector="Button.dialog">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaBorderBrush}" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="14,6" />
+      <Setter Property="Foreground" Value="{DynamicResource HbaTextBrush}" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.dialog:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaHoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaAccentBrush}" />
+    </Style>
+    <Style Selector="Button.dialog:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaActiveBrush}" />
+    </Style>
+
+    <!-- Flat toolbar button (VSCode-style: transparent, subtle hover, square) -->
+    <Style Selector="Button.flat">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="8,3" />
+      <Setter Property="Foreground" Value="{DynamicResource HbaTextBrush}" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="Button.flat:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaHoverBrush}" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Button.flat:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaActiveBrush}" />
+    </Style>
+
+    <!-- Window caption buttons (minimize / maximize / close) -->
+    <Style Selector="Button.caption">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="34" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.caption:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#22FFFFFF" />
+    </Style>
+    <Style Selector="Button.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#E81123" />
+    </Style>
+
+    <!-- Activity bar icon button -->
+    <Style Selector="Button.activity">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="2,0,0,0" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Width" Value="48" />
+      <Setter Property="Height" Value="46" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.activity.active">
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaAccentBrush}" />
+    </Style>
+
+    <!-- Thin, hover-highlight splitter -->
+    <Style Selector="GridSplitter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="GridSplitter:pointerover">
+      <Setter Property="Background" Value="{DynamicResource HbaAccentBrush}" />
+    </Style>
+
+    <!-- Card list rows: the Workbench explorer-row look (compact, soft hover, accent edge on selection) -->
+    <Style Selector="ListBox.cards ListBoxItem">
+      <Setter Property="MinHeight" Value="22" />
+      <Setter Property="Padding" Value="12,4" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Foreground" Value="{DynamicResource HbaTextBrush}" />
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaHoverBrush}" />
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaSelectionBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaAccentBrush}" />
+      <Setter Property="BorderThickness" Value="2,0,0,0" />
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaSelectionBrush}" />
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:selected:focus /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource HbaSelectionBrush}" />
+    </Style>
+
+    <!-- Gallery card tile: sidebar surface, accent border on hover and on the open card -->
+    <Style Selector="Border.tile">
+      <Setter Property="Background" Value="{DynamicResource HbaSideBarBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.tile:pointerover">
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaAccentBrush}" />
+    </Style>
+    <Style Selector="Border.tile.open">
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaAccentBrush}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
+    <!-- Editor tabs (the Workbench tab look: active tab on the editor surface with a 2px accent underline) -->
+    <Style Selector="Border.tab">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0,0,0,2" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.tab:pointerover">
+      <Setter Property="Background" Value="{DynamicResource HbaHoverBrush}" />
+    </Style>
+    <Style Selector="Border.tab.active">
+      <Setter Property="Background" Value="{DynamicResource HbaEditorBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource HbaAccentBrush}" />
+    </Style>
+    <Style Selector="Border.tab.locked">
+      <Setter Property="Cursor" Value="Arrow" />
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+    <Style Selector="Border.tab.locked:pointerover">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Form text -->
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource HbaMutedBrush}" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource HbaMutedBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="11.5" />
+      <Setter Property="Foreground" Value="{DynamicResource HbaMutedBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+  </Application.Styles>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <!-- Charcoal + brushed-metal, with a matching light variant - the HBA Workbench tokens, unchanged. -->
+      <ResourceDictionary.ThemeDictionaries>
+
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="HbaTitleBarBrush" Color="#202022" />
+          <SolidColorBrush x:Key="HbaActivityBrush" Color="#2A2A2D" />
+          <SolidColorBrush x:Key="HbaSideBarBrush" Color="#1F1F21" />
+          <SolidColorBrush x:Key="HbaEditorBrush" Color="#1B1B1D" />
+          <SolidColorBrush x:Key="HbaChromeBrush" Color="#232326" />
+          <SolidColorBrush x:Key="HbaBorderBrush" Color="#323236" />
+          <SolidColorBrush x:Key="HbaTextBrush" Color="#D4D1C9" />
+          <SolidColorBrush x:Key="HbaMutedBrush" Color="#8C8C92" />
+          <SolidColorBrush x:Key="HbaMetalBrush" Color="#C9C6BE" />
+          <SolidColorBrush x:Key="HbaAccentBrush" Color="#B8A46A" />
+          <SolidColorBrush x:Key="HbaWarningBrush" Color="#E0A33E" />
+          <SolidColorBrush x:Key="HbaErrorBrush" Color="#F14C4C" />
+          <SolidColorBrush x:Key="HbaHoverBrush" Color="#2E2E33" />
+          <SolidColorBrush x:Key="HbaActiveBrush" Color="#3A3A40" />
+          <SolidColorBrush x:Key="HbaSelectionBrush" Color="#33302A" />
+          <Color x:Key="SystemAccentColor">#B8A46A</Color>
+          <Color x:Key="SystemAccentColorDark1">#A8945C</Color>
+          <Color x:Key="SystemAccentColorLight1">#C7B47E</Color>
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="HbaTitleBarBrush" Color="#E6E6E8" />
+          <SolidColorBrush x:Key="HbaActivityBrush" Color="#DEDEE0" />
+          <SolidColorBrush x:Key="HbaSideBarBrush" Color="#F2F2F3" />
+          <SolidColorBrush x:Key="HbaEditorBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="HbaChromeBrush" Color="#EAEAEC" />
+          <SolidColorBrush x:Key="HbaBorderBrush" Color="#D2D2D5" />
+          <SolidColorBrush x:Key="HbaTextBrush" Color="#20201E" />
+          <SolidColorBrush x:Key="HbaMutedBrush" Color="#6A6A70" />
+          <SolidColorBrush x:Key="HbaMetalBrush" Color="#54524D" />
+          <SolidColorBrush x:Key="HbaAccentBrush" Color="#9A7B2E" />
+          <SolidColorBrush x:Key="HbaWarningBrush" Color="#A86A00" />
+          <SolidColorBrush x:Key="HbaErrorBrush" Color="#C42B2B" />
+          <SolidColorBrush x:Key="HbaHoverBrush" Color="#E4E4E6" />
+          <SolidColorBrush x:Key="HbaActiveBrush" Color="#D6D6D9" />
+          <SolidColorBrush x:Key="HbaSelectionBrush" Color="#EFE7CE" />
+          <Color x:Key="SystemAccentColor">#9A7B2E</Color>
+          <Color x:Key="SystemAccentColorDark1">#856A28</Color>
+          <Color x:Key="SystemAccentColorLight1">#B7963E</Color>
+        </ResourceDictionary>
+
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

@@ -1,0 +1,24 @@
+# .NET / C# build output (fully regenerable, never committed)
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+
+# Local MCP registration: holds this install's per-machine loopback bearer token.
+.mcp.json
+
+# 3D model inputs are third-party licensed files (e.g. Sketchfab Standard) that must not be
+# redistributed. Each machine supplies its own copies; cards record the path and SHA-256.
+models/*
+!models/README.md
+
+# Local scratch (downloaded models, experiments). May hold licensed files, so never committed.
+work/
+
+# Bake output is regenerable from cards + models.
+output/
+
+# Cards deleted from the app are moved here rather than destroyed.
+cards/.trash/

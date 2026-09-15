@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Dark Angel Sword",
+  "notes": "Low poly Dark Angel Sword by Leonardo Carvalho (Sketchfab Standard license). Replaces the longsword model art.",
+  "item": {
+    "model": "longsword",
+    "ids": [
+      17,
+      18,
+      19,
+      22
+    ],
+    "weaponClass": "one_handed_sword"
+  },
+  "model": {
+    "path": "models/low_poly_dark_angel_sword.glb",
+    "sha256": "af9b164766cfb82060eaddc7836ab2d2afcf2a308047d9c04eba0182e1210471"
+  },
+  "worn": {},
+  "equip": {},
+  "inventory": {},
+  "ground": {},
+  "created": "2026-09-15T21:14:29+00:00",
+  "modified": "2026-09-15T21:14:30+00:00",
+  "displayName": "Dark Angel Sword"
+}
