@@ -36,7 +36,7 @@ public interface IAutomationHost
 
     Task<OpResult> SetCardTabAsync(string tab);
 
-    Task<OpResult> SetModelViewAsync(int? direction, int? zoom);
+    Task<OpResult> SetModelViewAsync(ModelViewUpdate update);
 
     Task<OpResult> RenderModelAsync(RenderModelArgs args);
 

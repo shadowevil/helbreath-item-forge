@@ -270,8 +270,14 @@ dialog styles and cursors. No activity bar - the forge has one view (user decisi
 - **Card editor**: tabs Worn / Equip / Inventory / Ground / Model. The centre of every tab is the **live
   3D view**: the item model in 3D, with the sprite for the current context drawn behind it as a backdrop
   plane at game scale (character frame, doll figure, bag slot, map tile).
-  - Direct manipulation: drag to move, rotate rings, scale handle, with snapping and a numeric inspector
-    on the right that mirrors every drag (and accepts typed values). Undo / redo per card.
+  - Direct manipulation follows BLENDER (user direction, 2026-09-15): middle-drag orbits, shift-middle
+    pans, the wheel zooms, Ctrl+wheel scales, and G / R / S start a modal move / rotate / scale with X / Y / Z
+    to constrain an axis, Ctrl to snap, Shift for fine and Esc to cancel - with a numeric inspector on the
+    right that mirrors every drag and accepts typed values. Undo / redo per card.
+  - TWO cameras: **game** (the bake camera - fixed elevation, eight facings) where the viewport renders at
+    game scale and magnifies by whole pixels, so the preview IS the bake output; and **free**, which orbits
+    for inspection only and is never used by a render or a bake. The viewport fills the panel and draws the
+    sprite frame as a guide rather than clipping to it.
   - Occluders: add / select / move proxy shapes in the same view; cut shown as a tinted overlay; brush
     for the per-frame paint override.
   - Worn: sidebar tree sex -> action -> direction; bottom frame strip + play at the action's real frame

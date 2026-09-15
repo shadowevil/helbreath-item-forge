@@ -23,7 +23,16 @@ public sealed record GameCamera
     // Which way the character faces: 0 = north, clockwise, 45 degrees per step (the client's order).
     public int Direction { get; init; }
 
-    public float FacingDegrees => Direction * (360f / Directions);
+    // Free-look only: extra yaw on top of the facing, for orbiting the model in the editor. A bake never
+    // sets it - the whole point of the game camera is that every card is seen from the same angles.
+    public float ExtraYawDegrees { get; init; }
+
+    public float FacingDegrees => Direction * (360f / Directions) + ExtraYawDegrees;
+
+    public bool IsGameCamera =>
+        ExtraYawDegrees == 0f &&
+        ElevationDegrees == DefaultElevationDegrees &&
+        PixelsPerUnit == DefaultPixelsPerUnit;
 
     // World -> camera space. The character turns inside the camera, so the model rotates by the facing and
     // the view tips down by the elevation.

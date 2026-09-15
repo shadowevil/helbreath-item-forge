@@ -1,5 +1,6 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
+using ItemForge.Core;
 
 namespace ItemForge.App;
 
@@ -156,10 +157,15 @@ public sealed class IntegrationController : IDisposable
             async a => Str(a, "tab") is { } tab ? AsResult(await _host.SetCardTabAsync(tab)) : ToolResult.Err("'tab' is required."));
 
         Register("set_model_view",
-            "Point the live 3D view: 'direction' 0..7 (0 = north, clockwise, 45 degrees a step, the client's order) and 'zoom' 1..8 (whole-pixel magnification; the pixels are the bake's own, never smoothed).",
-            Schema(("direction", "integer", "Facing 0..7.", false), ("zoom", "integer", "1..8.", false)),
+            "Point the live 3D view. 'direction' 0..7 (0 = north, clockwise, 45 degrees a step, the client's order); 'zoom' 1..16 (whole-pixel magnification; the pixels are the bake's own, never smoothed); 'mode' game (the bake camera, pixel-exact) or free (orbit to inspect - never used by a render or a bake); 'reset' returns to the game camera, centred, at zoom 2. View state only: nothing here changes the card or an output pixel.",
+            Schema(
+                ("direction", "integer", "Facing 0..7.", false),
+                ("zoom", "integer", "1..16.", false),
+                ("mode", "string", "game | free", false),
+                ("reset", "boolean", "Reset the view before applying the rest.", false)),
             IntegrationMode.Observe,
-            async a => AsResult(await _host.SetModelViewAsync(Int(a, "direction"), Int(a, "zoom"))));
+            async a => AsResult(await _host.SetModelViewAsync(new ModelViewUpdate(
+                Int(a, "direction"), Int(a, "zoom"), Str(a, "mode"), Bool(a, "reset")))));
 
         Register("render_model",
             "Render the card's model through the game camera, off screen, with the card's own setup - the model ALONE on transparency, never the character sprite. Returns the cost (triangles, ms, supersample), the tight opaque box and the pivot derived from it, plus the PNG inline; pass 'destFile' (absolute .png, Full mode) to write it to disk instead.",
@@ -225,6 +231,8 @@ public sealed class IntegrationController : IDisposable
                     id = new { type = "string", description = "Card to edit; defaults to the open card." },
                     fit = new { type = "boolean", description = "Set the scale so the model fills about 80% of the frame." },
                     scale = new { type = "number", description = "World units per model unit; greater than 0." },
+                    offsetX = new { type = "number", description = "Sprite pixels from the anchor, right positive; moves the derived pivot with it." },
+                    offsetY = new { type = "number", description = "Sprite pixels from the anchor, down positive." },
                     rotationX = new { type = "number", description = "Base fix-up, degrees (applied X then Y then Z)." },
                     rotationY = new { type = "number", description = "Base fix-up, degrees." },
                     rotationZ = new { type = "number", description = "Base fix-up, degrees." },
@@ -235,7 +243,7 @@ public sealed class IntegrationController : IDisposable
             },
             IntegrationMode.Full,
             async a => AsResult(await _host.UpdateModelSetupAsync(new ModelSetupUpdate(
-                Str(a, "id"), Bool(a, "fit"), Num(a, "scale"),
+                Str(a, "id"), Bool(a, "fit"), Num(a, "scale"), Num(a, "offsetX"), Num(a, "offsetY"),
                 Num(a, "rotationX"), Num(a, "rotationY"), Num(a, "rotationZ"),
                 Num(a, "lightYaw"), Num(a, "lightPitch"), Num(a, "ambient")))));
 
@@ -338,7 +346,7 @@ public sealed class IntegrationController : IDisposable
         {
             return new ToolResult(new List<object>
             {
-                new { type = "text", text = JsonSerializer.Serialize(new { ok = true, stats = payload.Stats, width = payload.Width, height = payload.Height }) },
+                new { type = "text", text = JsonSerializer.Serialize(new { ok = true, stats = payload.Stats, width = payload.Width, height = payload.Height }, JsonOpts.Pretty) },
                 new { type = "image", data = payload.Base64Png, mimeType = "image/png" },
             });
         }
@@ -388,3 +396,4 @@ public sealed class IntegrationController : IDisposable
             ? (float)d
             : null;
 }
+

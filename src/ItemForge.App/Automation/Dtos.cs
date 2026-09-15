@@ -39,12 +39,17 @@ public sealed record ModelSetupUpdate(
     string? Id,
     bool Fit,
     float? Scale,
+    float? OffsetX,
+    float? OffsetY,
     float? RotationX,
     float? RotationY,
     float? RotationZ,
     float? LightYaw,
     float? LightPitch,
     float? Ambient);
+
+// Live-view state: which way it looks and how hard it magnifies. None of it reaches an output pixel.
+public sealed record ModelViewUpdate(int? Direction, int? Zoom, string? Mode, bool Reset);
 
 // One off-screen render of a card's model through the game camera.
 public sealed record RenderModelArgs(string? Id, int? Direction, int? Size, int? Supersample);

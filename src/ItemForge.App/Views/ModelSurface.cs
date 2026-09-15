@@ -26,7 +26,7 @@ public sealed class ModelSurface : Control
         get => _zoom;
         set
         {
-            int clamped = Math.Clamp(value, 1, 8);
+            int clamped = Math.Clamp(value, 1, 16);
             if (clamped != _zoom)
             {
                 _zoom = clamped;
@@ -37,6 +37,10 @@ public sealed class ModelSurface : Control
 
     // Draw a crosshair where the model origin sits; later phases put the character's foot anchor there.
     public bool ShowAnchor { get; set; } = true;
+
+    // Side of the sprite frame to outline around the anchor, or 0 for none. It shows how much of the model
+    // would actually fit in a sprite at game scale, which the viewport itself no longer limits.
+    public int FrameGuide { get; set; }
 
     public Framebuffer? Frame => _frame;
 
@@ -77,16 +81,26 @@ public sealed class ModelSurface : Control
         double width = _frame.Width * _zoom, height = _frame.Height * _zoom;
         double left = Math.Round((bounds.Width - width) / 2);
         double top = Math.Round((bounds.Height - height) / 2);
-        var dest = new Rect(left, top, width, height);
-        context.DrawImage(_bitmap, new Rect(0, 0, _frame.Width, _frame.Height), dest);
+        context.DrawImage(_bitmap, new Rect(0, 0, _frame.Width, _frame.Height), new Rect(left, top, width, height));
+
+        double ax = left + (_frame.AnchorX + 0.5) * _zoom;
+        double ay = top + (_frame.AnchorY + 0.5) * _zoom;
+
+        if (FrameGuide > 0)
+        {
+            var guide = new Pen(this.FindResource("HbaBorderBrush") as IBrush ?? Brushes.Gray, 1)
+            {
+                DashStyle = new DashStyle(new double[] { 4, 4 }, 0),
+            };
+            double side = FrameGuide * _zoom;
+            context.DrawRectangle(null, guide, new Rect(ax - side / 2, ay - side / 2, side, side));
+        }
 
         if (!ShowAnchor)
         {
             return;
         }
         var pen = new Pen(this.FindResource("HbaAccentBrush") as IBrush ?? Brushes.Goldenrod, 1);
-        double ax = left + (_frame.AnchorX + 0.5) * _zoom;
-        double ay = top + (_frame.AnchorY + 0.5) * _zoom;
         const double arm = 7;
         context.DrawLine(pen, new Point(ax - arm, ay), new Point(ax + arm, ay));
         context.DrawLine(pen, new Point(ax, ay - arm), new Point(ax, ay + arm));

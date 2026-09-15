@@ -72,6 +72,10 @@ public sealed class ModelSetup
     // upright in the game camera.
     public Vec3 Rotation { get; set; } = new();
 
+    // Sprite pixels from the anchor, before any per-presentation placement. Moving the model here moves its
+    // derived pivot by the same amount, which is exactly what it means.
+    public Vec2 Offset { get; set; } = new();
+
     // The light is fixed to the screen, not the world (see ModelRenderer), so these are viewer-relative.
     public float LightYaw { get; set; } = -35f;
     public float LightPitch { get; set; } = 45f;
@@ -79,6 +83,12 @@ public sealed class ModelSetup
 
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? Extra { get; set; }
+}
+
+public sealed class Vec2
+{
+    public float X { get; set; }
+    public float Y { get; set; }
 }
 
 public sealed class Vec3

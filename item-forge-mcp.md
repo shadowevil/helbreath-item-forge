@@ -72,12 +72,12 @@ Observe for that run; Full must be chosen in the menu (it persists).
 | `open_card` | Observe | `id` | Open a card in the editor. Refused while another card is dirty. |
 | `set_card_tab` | Observe | `tab` | `Details` or `Model`; the presentation tabs are locked until their phase. |
 | `get_model_info` | Observe | `id?` | Loaded geometry (triangles, bounds, texture, load ms), the base setup, the live view and the last render's stats. |
-| `set_model_view` | Observe | `direction?`, `zoom?` | Point the live 3D view: facing 0..7, whole-pixel zoom 1..8. |
+| `set_model_view` | Observe | `direction?`, `zoom?`, `mode?`, `reset?` | Point the live 3D view: facing 0..7, whole-pixel zoom 1..16, camera `game` or `free`, or reset it. View state only. |
 | `render_model` | Observe (Full for `destFile`) | `id?`, `direction?`, `size?`, `supersample?`, `destFile?` | Render the model alone through the game camera; returns cost, opaque box and pivot, PNG inline or to disk. |
 | `close_card` | Observe (Full to discard) | `discard?` | Close the open card; refused when dirty unless `discard:true`. |
 | `create_card` | Full | `name`, `open?` | New `cards/<id>.json`; id derived from the name. |
 | `update_card` | Full | `id?`, `name?`, `notes?`, `itemType?`, `modelPath?` | Edit the working copy (becomes dirty). Validates all fields before applying any. `modelPath` binds + hashes; `""` clears. |
-| `update_model_setup` | Full | `id?`, `fit?`, `scale?`, `rotationX/Y/Z?`, `lightYaw?`, `lightPitch?`, `ambient?` | Edit the base fix-up every presentation inherits. Validates before applying. |
+| `update_model_setup` | Full | `id?`, `fit?`, `scale?`, `offsetX/Y?`, `rotationX/Y/Z?`, `lightYaw?`, `lightPitch?`, `ambient?` | Edit the base fix-up every presentation inherits. Validates before applying. |
 | `save_card` | Full | - | Atomic write of the open card. |
 | `duplicate_card` | Full | `id`, `name` | Copy a card under a new name. |
 | `delete_card` | Full | `id` | Move to `cards/.trash/`. |
@@ -96,8 +96,12 @@ Every reply is JSON text; failures are `{ok:false, error}` with `isError:true`.
    through one shared game camera - orthographic, so the tight opaque box it reports IS the sprite pivot
    (`pivotX` / `pivotY`, relative to the anchor). A bake renders the MODEL ONLY; the character sprite is an
    editing backdrop and never reaches an output pixel.
-4. **Every render states its cost** (`stats.cost`: triangles drawn, supersample, ms, size). Live view renders
+4. **Two cameras, one of which bakes**: the Model tab can orbit freely (`set_model_view mode:free`, or
+   middle-drag in the app) to inspect a model, but `render_model` and every bake always use the GAME camera -
+   fixed elevation, eight facings. A free look changes nothing about the output, which is what makes the
+   pixel-exact preview in game mode trustworthy.
+5. **Every render states its cost** (`stats.cost`: triangles drawn, supersample, ms, size). Live view renders
    at supersample 1, `render_model` defaults to 4.
-5. **Model binding is by path + SHA-256**: a model inside the workspace is stored relative
+6. **Model binding is by path + SHA-256**: a model inside the workspace is stored relative
    (`models/foo.glb`), so the card works on any machine; `modelStatus: Changed` means the file no longer
    matches the recorded hash.

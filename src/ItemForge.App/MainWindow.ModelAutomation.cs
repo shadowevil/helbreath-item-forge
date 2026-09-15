@@ -45,7 +45,7 @@ public partial class MainWindow
                 sourceHeight = texture.SourceHeight,
             },
             setup = Describe(setup),
-            view = new { tab = _editor!.CurrentTab, direction = view.Direction, zoom = view.Zoom },
+            view = new { tab = _editor!.CurrentTab, direction = view.Direction, zoom = view.Zoom, camera = view.CameraModeName },
             lastRender = view.LastStats is null ? null : Describe(view.LastStats),
         });
     });
@@ -74,7 +74,7 @@ public partial class MainWindow
         foreach (var (name, value) in new[]
                  {
                      ("rotationX", update.RotationX), ("rotationY", update.RotationY), ("rotationZ", update.RotationZ),
-                     ("lightYaw", update.LightYaw),
+                     ("lightYaw", update.LightYaw), ("offsetX", update.OffsetX), ("offsetY", update.OffsetY),
                  })
         {
             if (value is { } v && !float.IsFinite(v))
@@ -90,6 +90,8 @@ public partial class MainWindow
         var setup = _openCard!.Model.Setup;
         if (update.Fit) setup.Scale = ModelView.FitScale(view.Geometry!);
         if (update.Scale is { } s) setup.Scale = s;
+        if (update.OffsetX is { } ox) setup.Offset.X = ox;
+        if (update.OffsetY is { } oy) setup.Offset.Y = oy;
         if (update.RotationX is { } rx) setup.Rotation.X = rx;
         if (update.RotationY is { } ry) setup.Rotation.Y = ry;
         if (update.RotationZ is { } rz) setup.Rotation.Z = rz;
@@ -116,24 +118,32 @@ public partial class MainWindow
         return OpResult.Success(new { id = _openCard!.Id, tab = _editor.CurrentTab });
     });
 
-    public Task<OpResult> SetModelViewAsync(int? direction, int? zoom) => OnUi(() =>
+    public Task<OpResult> SetModelViewAsync(ModelViewUpdate update) => OnUi(() =>
     {
         var (view, error) = RequireModelView(null, needsGeometry: false);
         if (view is null)
         {
             return OpResult.Fail(error!);
         }
-        if (direction is { } d && (d < 0 || d >= GameCamera.Directions))
+        if (update.Direction is { } d && (d < 0 || d >= GameCamera.Directions))
         {
             return OpResult.Fail($"direction must be 0..{GameCamera.Directions - 1} (0 = north, clockwise)");
         }
-        if (zoom is { } z && (z < 1 || z > 8))
+        if (update.Zoom is { } z && (z < 1 || z > 16))
         {
-            return OpResult.Fail("zoom must be 1..8");
+            return OpResult.Fail("zoom must be 1..16");
         }
-        if (direction is { } dir) view.SetDirection(dir);
-        if (zoom is { } factor) view.SetZoom(factor);
-        return OpResult.Success(new { direction = view.Direction, zoom = view.Zoom });
+        if (update.Mode is { Length: > 0 } mode && !mode.Equals("game", StringComparison.OrdinalIgnoreCase) && !mode.Equals("free", StringComparison.OrdinalIgnoreCase))
+        {
+            return OpResult.Fail("mode must be game or free");
+        }
+
+        // Reset first, so a call can reset and then point the view in one go.
+        if (update.Reset) view.ResetView();
+        if (update.Mode is { Length: > 0 } wanted) view.SetCameraMode(wanted);
+        if (update.Direction is { } dir) view.SetDirection(dir);
+        if (update.Zoom is { } factor) view.SetZoom(factor);
+        return OpResult.Success(new { direction = view.Direction, zoom = view.Zoom, camera = view.CameraModeName });
     });
 
     public Task<OpResult> RenderModelAsync(RenderModelArgs args) => OnUi(() =>
@@ -194,6 +204,8 @@ public partial class MainWindow
     private static object Describe(ModelSetup setup) => new
     {
         scale = setup.Scale,
+        offsetX = setup.Offset.X,
+        offsetY = setup.Offset.Y,
         rotationX = setup.Rotation.X,
         rotationY = setup.Rotation.Y,
         rotationZ = setup.Rotation.Z,
